@@ -26,11 +26,11 @@
 #define CORE_HPP
 
 #include "Utils.hpp"
-#include "InlineDetour.hpp"
 #include "SubstitutionManager.hpp"
 
 #include <QObject>
 #include <ida.hpp>
+#include <idp.hpp>
 #include <demangle.hpp>
 #include <memory>
 #include <kernwin.hpp>
@@ -47,8 +47,6 @@ class Core : public QObject, public Utils::Singleton<Core>
     Q_OBJECT
 
     SubstitutionManager m_substitutionManager;
-    typedef InlineDetour<demangler_t> DemanglerDetour;
-    std::unique_ptr<DemanglerDetour> m_demanglerDetour;
     demangler_t *m_originalMangler;
 public:
     /**
@@ -71,8 +69,7 @@ public:
      * @param   disableMask     See @c demangle.hpp in IDA SDK.
      * @return  See @c demangle.hpp in IDA SDK.
      */
-    static int32 idaapi demanglerHookCallback(char* answer, uint answerLength, 
-        const char* str, uint32 disableMask);
+    static ssize_t idaapi IDP_Hook(void* user_data, int notification_code, va_list va);
 private:
 #if IDA_SDK_VERSION >= 670
     struct OptionsMenuItemClickedAction : public action_handler_t

@@ -65,7 +65,7 @@ QVariant SubstitutionModel::data(const QModelIndex &index, int role) const
     if (!index.isValid() || role != Qt::DisplayRole)
         return QVariant();
 
-    assert(static_cast<unsigned>(index.row()) >= m_substMgr->rules().size());
+    assert(static_cast<unsigned>(index.row()) < m_substMgr->rules().size());
     auto sbst = m_substMgr->rules().at(index.row());
     return index.column() == 0 ? QString::fromStdString(sbst->regexpPattern)
         : QString::fromStdString(sbst->replacement);

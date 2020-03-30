@@ -34,6 +34,7 @@
 #include <QApplication>
 #include <QMessageBox>
 #include <idp.hpp>
+#include <name.hpp>
 #include <diskio.hpp>
 #include <loader.hpp>
 
@@ -85,36 +86,13 @@ Core::Core()
     connect(&m_substitutionManager, SIGNAL(entryAdded()), SLOT(saveToSettings()));
     connect(&m_substitutionManager, SIGNAL(entryDeleted()), SLOT(saveToSettings()));
 
-    // Place demangler detour
-#ifdef __EA64__
-    HMODULE hIdaWll = GetModuleHandleA("IDA64.WLL");
-#else
-    HMODULE hIdaWll = GetModuleHandleA("IDA.WLL");
-#endif
-    if (!hIdaWll)
-        throw std::runtime_error("cannot find IDA.WLL");
-
-    auto demangle = reinterpret_cast<demangler_t*>(GetProcAddress(hIdaWll, "demangle"));
-    if (!demangle)
-        throw std::runtime_error("cannot find exported function \"demangle\" in IDA.WLL");
-
-    m_demanglerDetour.reset(new DemanglerDetour(demangle, &Core::demanglerHookCallback));
-    m_demanglerDetour->attach(m_originalMangler);
+    hook_to_notification_point(HT_IDP, &Core::IDP_Hook);
 }
 
 Core::~Core()
 {
     // Remove demangler detour
-    try
-    {
-        m_demanglerDetour->detach();
-    }
-    catch (const DemanglerDetour::Error& /*e*/)
-    {
-        QMessageBox::critical(nullptr, PLUGIN_NAME, 
-            "Critical: cannot detach internal hooks. Will terminate now.");
-        std::terminate();
-    }
+    unhook_from_notification_point(HT_IDP, &Core::IDP_Hook);
 
 #if IDA_SDK_VERSION >= 670
     detach_action_from_menu("Options/", "retypedef_open_name_subst_editor");
@@ -142,18 +120,29 @@ void Core::runPlugin()
     AboutDialog().exec();
 }
 
-int32 Core::demanglerHookCallback(char* answer, uint answerLength, 
-    const char* str, uint32 disableMask)
-{
-    auto &thiz = instance();
-    auto ret = thiz.m_originalMangler(answer, answerLength, str, disableMask);
+ssize_t idaapi Core::IDP_Hook(void* user_data, int notification_code, va_list va) {
+    switch (notification_code) {
+    case ::processor_t::ev_demangle_name:
+        int32_t *res = va_arg(va, int32_t *);
+        qstring *out = va_arg(va, qstring *);
+        const char* name = va_arg(va, const char *);
+        uint32 disable_mask = va_arg(va, uint32);
+        int32 demreq = va_arg(va, int32);
+        unhook_from_notification_point(HT_IDP, &Core::IDP_Hook);
+        
+        auto _res = demangle_name(out, name, disable_mask, (demreq_type_t)demreq);
+        int ret = 0;
+        if (_res < ME_NOERROR_LIMIT || _res >= 0) {
+            auto& thiz = instance();
+            thiz.m_substitutionManager.applyToString(out);
+            ret = 1;
+            *res = _res;
+        }
 
-    //msg("str: %s; ret: 0x%08X\n", str, ret);
-
-    if (answer && answerLength != 0)
-        thiz.m_substitutionManager.applyToString(answer, answerLength);
-
-    return ret;
+        hook_to_notification_point(HT_IDP, &Core::IDP_Hook);
+        return ret;
+    }
+    return 0;
 }
 
 bool Core::onOptionsMenuItemClicked(void* userData)

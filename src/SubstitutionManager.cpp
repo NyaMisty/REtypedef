@@ -76,12 +76,12 @@ void SubstitutionManager::clearRules()
     }
 }
 
-void SubstitutionManager::applyToString(char* str, uint outLen) const
+void SubstitutionManager::applyToString(qstring* str) const
 {
     for (auto it = m_rules.cbegin(), end = m_rules.cend(); it != end; ++it)
     {
         std::cmatch groups;
-        while (std::regex_match(str, groups, (*it)->regexp))
+        while (std::regex_match(str->c_str(), groups, (*it)->regexp))
         {
             auto processed = (*it)->replacement;
             std::smatch markerGroups;
@@ -101,7 +101,8 @@ void SubstitutionManager::applyToString(char* str, uint outLen) const
                     pos += replace.length();
                 }
             }
-            ::qstrncpy(str, processed.c_str(), outLen);
+            //::qstrncpy(str, processed.c_str(), outLen);
+            *str = processed.c_str();
         }
     }
 }

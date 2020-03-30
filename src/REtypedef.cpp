@@ -57,9 +57,10 @@ int idaapi init()
 /**
  * @brief   Run callback for IDA.
  */
-void idaapi run(int /*arg*/)
+bool idaapi run(size_t /*arg*/)
 {
     Core::instance().runPlugin();
+    return true;
 }
 
 /**
@@ -74,7 +75,7 @@ void idaapi term()
 plugin_t PLUGIN =
 {
     IDP_INTERFACE_VERSION,
-    PLUGIN_FIX,
+    0,
     &init,
     &term,
     &run,

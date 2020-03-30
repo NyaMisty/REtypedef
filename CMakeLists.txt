@@ -33,7 +33,6 @@ set(headers
     "src/Config.hpp"
     "src/Core.hpp"
     "src/ImportExport.hpp"
-    "src/InlineDetour.hpp"
     "src/RETypedef.hpp"
     "src/Settings.hpp"
     "src/SubstitutionManager.hpp"
@@ -42,7 +41,6 @@ set(headers
 set(sources
     "src/Core.cpp"
     "src/ImportExport.cpp"
-    "src/InlineDetour.cpp"
     "src/REtypedef.cpp"
     "src/Settings.cpp"
     "src/SubstitutionManager.cpp"
@@ -54,19 +52,14 @@ set(forms
 set(resources 
     "resources/rsrc.qrc")
 
-# Add Zydis dependency.
-set(ZYDIS_FEATURE_EVEX FALSE CACHE BOOL "" FORCE) 
-set(ZYDIS_FEATURE_MVEX FALSE CACHE BOOL "" FORCE) 
-set(ZYDIS_FEATURE_FLAGS FALSE CACHE BOOL "" FORCE) 
-set(ZYDIS_FEATURE_CPUID FALSE CACHE BOOL "" FORCE) 
-set(ZYDIS_BUILD_EXAMPLES FALSE CACHE BOOL "" FORCE)
-set(ZYDIS_BUILD_TOOLS FALSE CACHE BOOL "" FORCE)
-add_subdirectory("../zydis" "zydis")
-
 # Add IDA plugin target
 include_directories("src")
 add_ida_qt_plugin(
     ${CMAKE_PROJECT_NAME} 
     ${headers} ${sources} 
     ${forms} ${resources})
-target_link_libraries(${CMAKE_PROJECT_NAME} "Zydis")
+
+find_package(Qt5 COMPONENTS Widgets REQUIRED)
+find_package(Qt5 COMPONENTS Core REQUIRED)
+target_link_libraries(${CMAKE_PROJECT_NAME} Qt5::Widgets)
+target_link_libraries(${CMAKE_PROJECT_NAME} Qt5::Core)

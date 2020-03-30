@@ -27,6 +27,6 @@
 
 #include <loader.hpp>
 
-extern plugin_t PLUGIN;
+extern __declspec(dllexport) plugin_t PLUGIN;
 
 #endif // RETYPEDEF_HPP

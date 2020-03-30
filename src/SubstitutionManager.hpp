@@ -32,6 +32,7 @@
 #include <vector>
 #include <memory>
 #include <QObject>
+#include <pro.h>
 
 // ============================================================================================== //
 // [Substitution]                                                                                 //
@@ -66,7 +67,7 @@ public:
     void clearRules();
     const SubstitutionList& rules() const { return m_rules; }
 public:
-    void applyToString(char* str, uint outLen) const;
+    void applyToString(qstring* str) const;
 signals:
     void entryAdded();
     void entryDeleted();
