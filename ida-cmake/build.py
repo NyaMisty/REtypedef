@@ -173,11 +173,18 @@ if __name__ == '__main__':
                 '--build', '.',
             ]
             proc = Popen(cmake_cmd, cwd=build_dir)
+            if proc.wait() != 0:
+                print('[-] Build failed, giving up.')
+                exit()
 
             if not args.skip_install:
+                cmake_cmd = [
+                    cmake_bin,
+                    '--build', '.', '--target', 'install',
+                ]
+
                 # Install plugin
-                proc = Popen(get_install_solution_arguments(args.platform),
-                    cwd=build_dir)
+                proc = Popen(cmake_cmd, cwd=build_dir)
                 if proc.wait() != 0:
                     print('[-] Install failed, giving up.')
                     exit()
