@@ -1,6 +1,0 @@
-[submodule "zydis"]
-	path = zydis
-	url = https://github.com/zyantific/zyan-disassembler-engine.git
-[submodule "ida-cmake"]
-	path = ida-cmake
-	url = https://github.com/zyantific/ida-cmake.git
