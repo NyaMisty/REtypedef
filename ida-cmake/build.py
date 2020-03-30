@@ -166,14 +166,8 @@ if __name__ == '__main__':
             if proc.wait() != 0:
                 print('[-] CMake failed, giving up.')
                 exit()
-            '''
+
             # Build plugin
-            proc = Popen(get_build_solution_arguments(args.platform, build_dir), cwd=build_dir)
-            if proc.wait() != 0:
-                print('[-] Build failed, giving up.')
-                exit()
-            '''
-            # Run cmake
             cmake_cmd = [
                 cmake_bin,
                 '--build', '.',
